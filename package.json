@@ -1,0 +1,11 @@
+{
+  "name": "gmap-utils",
+  "version": "0.1.0",
+  "description": "Utilities for better Google Map experiences.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Rye Nguyen <ryenguyen7411@gmail.com>",
+  "license": "MIT"
+}
