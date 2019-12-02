@@ -2,11 +2,15 @@
   "presets": [
     [
       "@babel/preset-env",
-      { "loose": true, "targets": "last 1 version, not dead" }
+      {
+        "loose": true,
+        "targets": "last 1 version, not dead"
+      }
     ]
   ],
   "plugins": [
-    "@babel/plugin-transform-react-jsx",
-    "@babel/plugin-transform-modules-commonjs"
+    "@babel/plugin-transform-modules-commonjs",
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-transform-react-jsx"
   ]
 }
