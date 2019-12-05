@@ -12,11 +12,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 var GoogleMapSDK = function GoogleMapSDK(google) {
   var _this = this;
 
-  _defineProperty(this, "render", function (ref, options) {
-    var map = new _this.google.maps.Map(ref, options);
-    return map;
-  });
-
   _defineProperty(this, "addListener", function (ref, event, cb) {
     _this.google.maps.event.addListener(ref, event, cb);
   });
@@ -25,27 +20,25 @@ var GoogleMapSDK = function GoogleMapSDK(google) {
     _this.google.maps.event.addListenerOnce(ref, event, cb);
   });
 
-  _defineProperty(this, "createGoogleMap", function (ref, options) {
-    return new _this.google.maps.Map(ref, options);
+  _defineProperty(this, "createMap", function (ref, options) {
+    var map = new _this.google.maps.Map(ref, options);
+    _this.map = map;
+    return map;
+  });
+
+  _defineProperty(this, "getMap", function () {
+    return _this.map;
   });
 
   _defineProperty(this, "createMarker", function (options) {
-    return new _this.google.maps.Marker(options);
+    return new _this.google.maps.Marker(_extends({}, options, {
+      map: _this.getMap()
+    }));
   });
 
   _defineProperty(this, "createInfoWindow", function (options) {
-    return new _this.google.maps.InfoWindow(options);
-  });
-
-  _defineProperty(this, "createIcon", function (options) {
-    var _options$size = options.size,
-        size = _options$size === void 0 ? 8 : _options$size;
-    return new _this.google.maps.Icon(_extends({
-      origin: null,
-      anchor: null
-    }, options, {
-      size: new _this.google.maps.Size(size, size),
-      scaleSize: new _this.google.maps.Size(size, size)
+    return new _this.google.maps.InfoWindow(_extends({}, options, {
+      map: _this.getMap()
     }));
   });
 
@@ -53,20 +46,27 @@ var GoogleMapSDK = function GoogleMapSDK(google) {
     return new _this.google.maps.LatLng(lat, lng);
   });
 
-  _defineProperty(this, "createLatLngBounds", function () {
-    return new _this.google.maps.LatLngBounds();
+  _defineProperty(this, "createBound", function (latlngList) {
+    if (latlngList === void 0) {
+      latlngList = [];
+    }
+
+    var bounds = new _this.google.maps.LatLngBounds();
+    latlngList.forEach(function (latlng) {
+      bounds.extend(_this.createLatLng(latlng.lat, latlng.lng));
+    });
+
+    _this.getMap().fitBounds(bounds);
   });
 
-  _defineProperty(this, "getAutocomplete", function (text) {
+  _defineProperty(this, "getAutocomplete", function (input) {
     var sessionToken = new _this.google.maps.places.AutocompleteSessionToken();
     return new Promise(function (resolve, reject) {
       _this.autocompleteService.getQueryPredictions({
-        input: text,
+        input: input,
         sessionToken: sessionToken
       }, function (predictions, status) {
-        if (status === "OK") {
-          resolve(predictions);
-        } else reject(status);
+        if (status === "OK") resolve(predictions);else reject(status);
       });
     });
   });

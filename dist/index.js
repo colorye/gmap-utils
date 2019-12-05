@@ -23,19 +23,65 @@ function Gmap(props) {
       googleMap = _useState[0],
       setGoogleMap = _useState[1];
 
+  var _useState2 = (0, _react.useState)([]),
+      markers = _useState2[0],
+      setMarkers = _useState2[1];
+
   var ref = (0, _react.useRef)();
   (0, _react.useEffect)(function () {
     (0, _lib.default)(props.mapKey).then(function (map) {
-      setGoogleMap(map);
-      map.createGoogleMap(ref.current, {
+      map.createMap(ref.current, {
         zoom: 18,
-        center: {
+        center: props.center || {
           lat: 0,
           lng: 0
         }
       });
+      setGoogleMap(map);
     });
   }, []);
+  (0, _react.useEffect)(function () {
+    if (googleMap) {
+      markers.forEach(function (srcMarker) {
+        srcMarker.marker.setMap(null);
+      });
+      props.markers.forEach(function (srcMarker, index) {
+        var marker = markers[index];
+
+        if (marker) {
+          marker.marker.setPosition({
+            lat: srcMarker.lat,
+            lng: srcMarker.lng
+          });
+          marker.marker.setMap(googleMap.getMap());
+        } else {
+          markers.push({
+            marker: googleMap.createMarker({
+              icon: srcMarker.icon,
+              position: {
+                lat: srcMarker.lat,
+                lng: srcMarker.lng
+              }
+            }),
+            info: googleMap.createInfoWindow({
+              content: "<div>" + srcMarker.info + "</div>"
+            }) // circle: googleMap.createCircle(),
+
+          });
+        }
+      });
+      setMarkers(markers);
+      googleMap.createBound(props.markers);
+    }
+  }, [googleMap, props.markers]); // useEffect(() => {
+  //   if (googleMap) {
+  //     markers.map((srcMarker, index) => {
+  //       if (props.markers[index].showInfo) srcMarker.info.close();
+  //       else srcMarker.info.open(googleMap, srcMarker.marker);
+  //     });
+  //   }
+  // }, [googleMap, props.markers, markers]);
+
   return _react.default.createElement("div", {
     ref: ref,
     className: "map-container",
@@ -43,6 +89,10 @@ function Gmap(props) {
   });
 }
 
+Gmap.defaultProps = {
+  markers: [],
+  routes: []
+};
 var nodes = [];
 var GmapDOM = {
   render: function render(props, targetNode) {
@@ -53,6 +103,15 @@ var GmapDOM = {
     _reactDom.default.render(component, targetNode);
 
     return component;
+  },
+  unmount: function unmount(node) {
+    _reactDom.default.unmountComponentAtNode(node);
+  },
+  unmountAll: function unmountAll() {
+    nodes.forEach(function (node) {
+      return _reactDom.default.unmountComponentAtNode(node);
+    });
+    nodes = [];
   }
 };
 exports.GmapDOM = GmapDOM;

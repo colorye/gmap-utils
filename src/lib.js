@@ -4,32 +4,10 @@ class GoogleMapSDK {
 
     this.directionsDisplay = new this.google.maps.DirectionsRenderer();
     this.directionsService = new this.google.maps.DirectionsService();
-
     this.distanceMatrixService = new this.google.maps.DistanceMatrixService();
-
     this.autocompleteService = new this.google.maps.places.AutocompleteService();
     this.geocoder = new this.google.maps.Geocoder();
   }
-
-  render = (ref, options) => {
-    const map = new this.google.maps.Map(ref, options);
-
-    return map;
-  };
-
-  /**
-   * render
-   * - map, marker, infowindow, polyline, circle
-   *
-   * route: direction service + renderer
-   * autocomplete: autocomplete service
-   * geocoder: get full address from address/latlng
-   *
-   * animation
-   * - route: animate path
-   * - circle: animation spread
-   * - init map / change route/latlng: smooth bounding
-   */
 
   addListener = (ref, event, cb) => {
     this.google.maps.event.addListener(ref, event, cb);
@@ -39,47 +17,45 @@ class GoogleMapSDK {
     this.google.maps.event.addListenerOnce(ref, event, cb);
   };
 
-  createGoogleMap = (ref, options) => {
-    return new this.google.maps.Map(ref, options);
+  createMap = (ref, options) => {
+    const map = new this.google.maps.Map(ref, options);
+    this.map = map;
+    return map;
+  };
+
+  getMap = () => {
+    return this.map;
   };
 
   createMarker = options => {
-    return new this.google.maps.Marker(options);
+    return new this.google.maps.Marker({ ...options, map: this.getMap() });
   };
 
   createInfoWindow = options => {
-    return new this.google.maps.InfoWindow(options);
-  };
-
-  createIcon = options => {
-    const { size = 8 } = options;
-
-    return new this.google.maps.Icon({
-      origin: null,
-      anchor: null,
-      ...options,
-      size: new this.google.maps.Size(size, size),
-      scaleSize: new this.google.maps.Size(size, size)
-    });
+    return new this.google.maps.InfoWindow({ ...options, map: this.getMap() });
   };
 
   createLatLng = (lat, lng) => {
     return new this.google.maps.LatLng(lat, lng);
   };
 
-  createLatLngBounds = () => {
-    return new this.google.maps.LatLngBounds();
+  createBound = (latlngList = []) => {
+    const bounds = new this.google.maps.LatLngBounds();
+    latlngList.forEach(latlng => {
+      bounds.extend(this.createLatLng(latlng.lat, latlng.lng));
+    });
+
+    this.getMap().fitBounds(bounds);
   };
 
-  getAutocomplete = text => {
+  getAutocomplete = input => {
     const sessionToken = new this.google.maps.places.AutocompleteSessionToken();
     return new Promise((resolve, reject) => {
       this.autocompleteService.getQueryPredictions(
-        { input: text, sessionToken },
+        { input, sessionToken },
         (predictions, status) => {
-          if (status === "OK") {
-            resolve(predictions);
-          } else reject(status);
+          if (status === "OK") resolve(predictions);
+          else reject(status);
         }
       );
     });
