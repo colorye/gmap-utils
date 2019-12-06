@@ -26,7 +26,7 @@ function App() {
     <div>
       <h2>Awesome Gmap</h2>
       <button onClick={random}>Click me to random position</button>
-      <Gmap mapKey={process.env.MAP_KEY} markers={markers} />
+      <Gmap mapKey={process.env.MAP_KEY} markers={markers} showGeoLocation />
     </div>
   );
 }
