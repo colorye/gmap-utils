@@ -18,6 +18,46 @@ function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return 
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
+function updateMarkers(_temp) {
+  var _ref = _temp === void 0 ? {} : _temp,
+      googleMap = _ref.googleMap,
+      _ref$markers = _ref.markers,
+      markers = _ref$markers === void 0 ? [] : _ref$markers,
+      _ref$propsMarkers = _ref.propsMarkers,
+      propsMarkers = _ref$propsMarkers === void 0 ? [] : _ref$propsMarkers;
+
+  if (!googleMap) return markers;
+  markers.forEach(function (srcMarker) {
+    srcMarker.marker.setMap(null);
+  });
+  propsMarkers.forEach(function (srcMarker, index) {
+    var marker = markers[index];
+
+    if (marker) {
+      marker.marker.setPosition({
+        lat: srcMarker.lat,
+        lng: srcMarker.lng
+      });
+      marker.marker.setMap(googleMap.getMap());
+    } else {
+      markers.push({
+        marker: googleMap.createMarker({
+          icon: srcMarker.icon,
+          position: {
+            lat: srcMarker.lat,
+            lng: srcMarker.lng
+          }
+        }),
+        info: googleMap.createInfoWindow({
+          content: "<div>" + srcMarker.info + "</div>"
+        }) // circle: googleMap.createCircle(),
+
+      });
+    }
+  });
+  return markers;
+}
+
 function Gmap(props) {
   var _useState = (0, _react.useState)(),
       googleMap = _useState[0],
@@ -42,46 +82,22 @@ function Gmap(props) {
   }, []);
   (0, _react.useEffect)(function () {
     if (googleMap) {
-      markers.forEach(function (srcMarker) {
-        srcMarker.marker.setMap(null);
+      var newMarkers = updateMarkers({
+        googleMap: googleMap,
+        markers: markers,
+        propsMarkers: props.markers
       });
-      props.markers.forEach(function (srcMarker, index) {
-        var marker = markers[index];
-
-        if (marker) {
-          marker.marker.setPosition({
-            lat: srcMarker.lat,
-            lng: srcMarker.lng
-          });
-          marker.marker.setMap(googleMap.getMap());
-        } else {
-          markers.push({
-            marker: googleMap.createMarker({
-              icon: srcMarker.icon,
-              position: {
-                lat: srcMarker.lat,
-                lng: srcMarker.lng
-              }
-            }),
-            info: googleMap.createInfoWindow({
-              content: "<div>" + srcMarker.info + "</div>"
-            }) // circle: googleMap.createCircle(),
-
-          });
-        }
-      });
-      setMarkers(markers);
+      setMarkers(newMarkers);
       googleMap.createBound(props.markers);
     }
-  }, [googleMap, props.markers]); // useEffect(() => {
-  //   if (googleMap) {
-  //     markers.map((srcMarker, index) => {
-  //       if (props.markers[index].showInfo) srcMarker.info.close();
-  //       else srcMarker.info.open(googleMap, srcMarker.marker);
-  //     });
-  //   }
-  // }, [googleMap, props.markers, markers]);
-
+  }, [googleMap, props.markers]);
+  (0, _react.useEffect)(function () {
+    if (googleMap) {
+      markers.map(function (srcMarker, index) {
+        if (props.markers[index] && props.markers[index].showInfo) srcMarker.info.open(googleMap, srcMarker.marker);else srcMarker.info.close();
+      });
+    }
+  }, [googleMap, props.markers, markers]);
   return _react.default.createElement("div", {
     ref: ref,
     className: "map-container",

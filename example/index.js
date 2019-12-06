@@ -15,7 +15,8 @@ function App() {
     const newMarkers = [...Array(num).keys()].map(i => ({
       lat: 10 + Math.random(),
       lng: 106 + Math.random(),
-      info: "Ship here"
+      info: "Ship here",
+      showInfo: Math.floor(Math.random() * 2)
     }));
 
     setMarkers(newMarkers);

@@ -3,6 +3,35 @@ import React, { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import getGoogleMap from "./lib";
 
+function updateMarkers({ googleMap, markers = [], propsMarkers = [] } = {}) {
+  if (!googleMap) return markers;
+
+  markers.forEach(srcMarker => {
+    srcMarker.marker.setMap(null);
+  });
+
+  propsMarkers.forEach((srcMarker, index) => {
+    const marker = markers[index];
+    if (marker) {
+      marker.marker.setPosition({ lat: srcMarker.lat, lng: srcMarker.lng });
+      marker.marker.setMap(googleMap.getMap());
+    } else {
+      markers.push({
+        marker: googleMap.createMarker({
+          icon: srcMarker.icon,
+          position: { lat: srcMarker.lat, lng: srcMarker.lng }
+        }),
+        info: googleMap.createInfoWindow({
+          content: `<div>${srcMarker.info}</div>`
+        })
+        // circle: googleMap.createCircle(),
+      });
+    }
+  });
+
+  return markers;
+}
+
 export function Gmap(props) {
   const [googleMap, setGoogleMap] = useState();
   const [markers, setMarkers] = useState([]);
@@ -20,42 +49,26 @@ export function Gmap(props) {
 
   useEffect(() => {
     if (googleMap) {
-      markers.forEach(srcMarker => {
-        srcMarker.marker.setMap(null);
+      const newMarkers = updateMarkers({
+        googleMap,
+        markers,
+        propsMarkers: props.markers
       });
+      setMarkers(newMarkers);
 
-      props.markers.forEach((srcMarker, index) => {
-        const marker = markers[index];
-        if (marker) {
-          marker.marker.setPosition({ lat: srcMarker.lat, lng: srcMarker.lng });
-          marker.marker.setMap(googleMap.getMap());
-        } else {
-          markers.push({
-            marker: googleMap.createMarker({
-              icon: srcMarker.icon,
-              position: { lat: srcMarker.lat, lng: srcMarker.lng }
-            }),
-            info: googleMap.createInfoWindow({
-              content: `<div>${srcMarker.info}</div>`
-            })
-            // circle: googleMap.createCircle(),
-          });
-        }
-      });
-
-      setMarkers(markers);
       googleMap.createBound(props.markers);
     }
   }, [googleMap, props.markers]);
 
-  // useEffect(() => {
-  //   if (googleMap) {
-  //     markers.map((srcMarker, index) => {
-  //       if (props.markers[index].showInfo) srcMarker.info.close();
-  //       else srcMarker.info.open(googleMap, srcMarker.marker);
-  //     });
-  //   }
-  // }, [googleMap, props.markers, markers]);
+  useEffect(() => {
+    if (googleMap) {
+      markers.map((srcMarker, index) => {
+        if (props.markers[index] && props.markers[index].showInfo)
+          srcMarker.info.open(googleMap, srcMarker.marker);
+        else srcMarker.info.close();
+      });
+    }
+  }, [googleMap, props.markers, markers]);
 
   return <div ref={ref} className="map-container" style={props.style}></div>;
 }
